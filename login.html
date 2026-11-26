@@ -1,0 +1,61 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SplitNest · Sign in</title><link rel="stylesheet" href="css/app.css">
+<style>
+form{display:grid;gap:12px;max-width:420px}
+form div{display:flex;flex-direction:column}
+form span{font-size:11px;color:#999;margin-bottom:3px}
+input{padding:7px;border:1px solid #ccc;border-radius:4px;font-size:13px}
+.err{color:#d33;font-size:12px;min-height:16px}
+</style></head>
+<body><header><div class="logo">Split<span>Nest</span></div><nav><a id="signup-nav" href="signup.html">Sign up</a><a href="index.html">Home</a></nav></header>
+<main><div class="card" style="max-width:480px;margin:0 auto"><h2 style="margin-top:0">Sign in to SplitNest</h2>
+<p class="muted">Sign in to view your household ledger.</p>
+<form id="login-form">
+<div><span>Email</span><input id="email" type="email" autocomplete="email" required></div>
+<div><span>Password</span><input id="pw" type="password" autocomplete="current-password" required></div>
+<div class="err" id="err"></div>
+<button class="btn" type="submit">Sign in</button>
+</form>
+<p class="muted" style="margin-top:16px;margin-bottom:0">Need an account? <a id="signup-link" href="signup.html">Create your account</a></p></div>
+<p class="muted" style="text-align:center;margin-top:18px">SplitNest is a made-up demo app for a YouTube video. Do not enter real details.</p></main>
+<script>
+const params = new URLSearchParams(location.search);
+const rawNext = params.get('next');
+function safeNextUrl(raw) {
+  if (!raw || raw.startsWith('//') || raw.startsWith('/\\')) return 'dashboard.html';
+  try {
+    const u = new URL(raw, location.origin);
+    if (u.origin === location.origin && /^\/[a-zA-Z0-9._/-]*$/.test(u.pathname)) {
+      return u.pathname + u.search + u.hash;
+    }
+  } catch (_) {}
+  return 'dashboard.html';
+}
+if (rawNext) {
+  const signupHref = 'signup.html?next=' + encodeURIComponent(safeNextUrl(rawNext));
+  document.getElementById('signup-link').href = signupHref;
+  document.getElementById('signup-nav').href = signupHref;
+}
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const errEl = document.getElementById('err');
+  errEl.textContent = '';
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('pw').value;
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Error: invalid email or password.';
+      return;
+    }
+    location.href = safeNextUrl(rawNext);
+  } catch (_) {
+    errEl.textContent = 'Error: unable to sign in right now.';
+  }
+});
+</script></body></html>

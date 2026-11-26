@@ -1,0 +1,146 @@
+[
+  {
+    "email": "shanaya.4b@example.com",
+    "name": "Shanaya",
+    "flat": "4B",
+    "salt": "4c29549982c1a6e7be33865e7ff7018f",
+    "passwordHash": "3ca7fe845b25153f67e9121b31deb1deadb10fdc4a6e0fb7d23b16f63e1e11b592da3f3d8ac62a133ff54108dc0ebdf087b7d4165bbf2ced67bc8cdc1dadc0f5",
+    "seeded": true
+  },
+  {
+    "email": "jyoti.4b@example.com",
+    "name": "Jyoti",
+    "flat": "4B",
+    "salt": "3715b9def9b16f8079ee5aa49f390441",
+    "passwordHash": "22347d237352271b6d100c89e0778732ea02efe492c2348f1e2505596610aaf063c9e45e885664421314d4e6c71b5be9ec96d3ea7160a11f6a0c84a5ab5fa183",
+    "seeded": true
+  },
+  {
+    "email": "maya.4b@example.com",
+    "name": "Maya",
+    "flat": "4B",
+    "salt": "6d3e70a63d6f0330b65ea8d4f4c3bc68",
+    "passwordHash": "a0d500b62f4a12056bf1cb534b76f0889e4ab9710a194984f3e228424472827a52f22cee338619d0d48829df6cabcef8b0540f350173b5c6cb2a736665b80805",
+    "seeded": true
+  },
+  {
+    "email": "leo.2a@example.com",
+    "name": "Leo",
+    "flat": "2A",
+    "salt": "eb4033004cbfc5d7577f9d3de8e57718",
+    "passwordHash": "2435b9e47d08478028373152a995742d77211e2d3ab9a6fb1770d7b81599382755b237b8ae7edf16d4761d70ea8854e7d8deca12aa2d02e438b787e51be67153",
+    "seeded": true
+  },
+  {
+    "email": "ana.2a@example.com",
+    "name": "Ana",
+    "flat": "2A",
+    "salt": "4059866acea4aa94d779d02b7c79891e",
+    "passwordHash": "9c1f697b2f5f9318420c50e5a742c5e5a6a10709ddf6996ff4cbb4d05a1c5201a3c9b8d8f2e2cbf39f39229cba4b4aabcb7b7068875944ba6820c6da43c98be9",
+    "seeded": true
+  },
+  {
+    "email": "kenji.2a@example.com",
+    "name": "Kenji",
+    "flat": "2A",
+    "salt": "a5853485db12200ffa1f98a383eb06e1",
+    "passwordHash": "beed4d22a8e615fa72d9a00abb2d0ea1f6cbfc32908a0b51b8c2ee76fcbf9f812f4be697a609c582e61bb0b9a9eab8592a3e978233e29d0a50ee230eaf0571e8",
+    "seeded": true
+  },
+  {
+    "email": "rosa.7c@example.com",
+    "name": "Rosa",
+    "flat": "7C",
+    "salt": "29660a79bad85d573d363940486a7421",
+    "passwordHash": "54af5149d6f91d55fc8b995ce1e44e752217db51e726460476cd767c033e44f9a0e3558950678bf955e7de46582c6c95556d173cbdd6f211866ed7421d5ed9fe",
+    "seeded": true
+  },
+  {
+    "email": "dev.7c@example.com",
+    "name": "Dev",
+    "flat": "7C",
+    "salt": "d4d94cad4972503d5930575ef2d3a88f",
+    "passwordHash": "21e1b41b9c7dac70068f8fa0b97be0584fc57b01d5b7c6013a92dcaf5f0f2cca12dbaddbe633ccd42962ad1a625e40a43e7de780fdb5da76adf4aa0f869724ab",
+    "seeded": true
+  },
+  {
+    "email": "ivy.7c@example.com",
+    "name": "Ivy",
+    "flat": "7C",
+    "salt": "1641408223fb18531a0ce9a6d4f5cf4b",
+    "passwordHash": "ec5fe2a90d748a0a92d677b3adaf5da7b86ab49056dd5ddc9cc1badd93d061139e6ad45ed9406f2a0f2b16739ea26097042d25f3c1c339a07c39d3435e5805d2",
+    "seeded": true
+  },
+  {
+    "email": "omar.3d@example.com",
+    "name": "Omar",
+    "flat": "3D",
+    "salt": "1fe45fa342dfcc297451a85b12a201e8",
+    "passwordHash": "13dca2256de5edda2fb604f0deedaffc96288c9f8c62999333aadc6725486783d48fee6ee839eff6b9218056f7ca48e0bb1345c4b149dde301b470c5ea673c50",
+    "seeded": true
+  },
+  {
+    "email": "tess.3d@example.com",
+    "name": "Tess",
+    "flat": "3D",
+    "salt": "5f3b29f657dd33fda74dbb4ae52fd4b0",
+    "passwordHash": "92154dda02bac4a8f9c522d829741e1f99a0e062300925a7d227a8401c4a804b6edfd98f45dedff389c9a89f59c3d9b80786547f4c86634f44538df0a425b397",
+    "seeded": true
+  },
+  {
+    "email": "noah.3d@example.com",
+    "name": "Noah",
+    "flat": "3D",
+    "salt": "ebf25ea163fe3fe3a72d1e6a9a7aa9ad",
+    "passwordHash": "bf1ffff5c5de62ee2c850a59aebb5ed4a3e7f6ac2effab38cc6d9ac9fc78bfa0dbad20352a8ee2d8627086afdd1bc8092da3917e78b290531532014b1f33e575",
+    "seeded": true
+  },
+  {
+    "email": "lina.5f@example.com",
+    "name": "Lina",
+    "flat": "5F",
+    "salt": "d1428e7f09dd8512437245c8322e860b",
+    "passwordHash": "5c0c1dfce7a1d7bfb354dca9d29d0debb4279537325e0f23c4fd087a2b26dd4a7b2151765426668e5510180bd729796abcf1dc0d0cc00a4445a1f83f86aa22e5",
+    "seeded": true
+  },
+  {
+    "email": "raj.5f@example.com",
+    "name": "Raj",
+    "flat": "5F",
+    "salt": "a46e41c9e82bd7217be6bfc653caf146",
+    "passwordHash": "45a8684aa1c19f811286667f93e9203dbc3167fd08ce3f956672f689d81279612f84799e639a9cb91234dfc17bc266b481210bf44df3fd4b2583afcee124c9ca",
+    "seeded": true
+  },
+  {
+    "email": "zoe.5f@example.com",
+    "name": "Zoe",
+    "flat": "5F",
+    "salt": "2c02a9a737ac8b578570a5999e163e7c",
+    "passwordHash": "4be785d86107a4f28a03a80859e04cc2801a300e92f7ef9bb72f183fa3452b5db598c9b63ddb6ab6e9f73766cd7b0d1639d15c78b264fcfe4cdbfb465743b997",
+    "seeded": true
+  },
+  {
+    "email": "eli.1e@example.com",
+    "name": "Eli",
+    "flat": "1E",
+    "salt": "ebef5bc4e3a585f2105f0125e6cd2961",
+    "passwordHash": "a703eb1ffd1642031a811af290a2876858f97250b99bbcd828defaf8b908ac415ccc4ccd03e6980ca2236980480ff11282af53b31687540d13929592a912c0fb",
+    "seeded": true
+  },
+  {
+    "email": "nia.1e@example.com",
+    "name": "Nia",
+    "flat": "1E",
+    "salt": "09c9aa0fce2d99103275652ec3f65699",
+    "passwordHash": "901ce5d4cacb3712d3e132de4a0d3eebc91954ad08f710f7d31c8fc12f39a1dcb50a591227f534b0c789272f15e4cb1b7be38ed04540eaca5f97a48f99f6db20",
+    "seeded": true
+  },
+  {
+    "email": "sam.1e@example.com",
+    "name": "Sam",
+    "flat": "1E",
+    "salt": "d2705e324989c39e45ddf7e5299b43d1",
+    "passwordHash": "7e8f10f3a39e336f86ddf502bc8c32c71ce5e1631ea130355dd3253858940096473b9829ddd8e71d9ee7eb6a60fcab2a27dee5bb6ab656d08cf0cc515c5322a7",
+    "seeded": true
+  }
+]
