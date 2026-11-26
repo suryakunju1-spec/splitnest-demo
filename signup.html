@@ -1,51 +1,207 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SplitNest · Create your account</title><link rel="stylesheet" href="css/app.css">
-<style>
-form{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
-form div{display:flex;flex-direction:column}
-form span{font-size:11px;color:#999;margin-bottom:3px}
-input,select{padding:7px;border:1px solid #ccc;border-radius:4px;font-size:13px}
-.err{color:#d33;font-size:12px;min-height:16px;grid-column:1/-1}
-.bank{grid-column:1/-1;background:#fff6ee;border:1px solid #f1c7a6;padding:14px;border-radius:8px;font-size:13px}
-</style></head>
-<body><header><div class="logo">Split<span>Nest</span></div><nav><a href="index.html">Home</a></nav></header>
-<main><div class="card"><h2 style="margin-top:0">Create your SplitNest account</h2>
-<p class="muted">All fields are required.</p>
-<form id="f">
-<div><span>First name</span><input id="first"></div>
-<div><span>Last name</span><input id="last"></div>
-<div><span>Email</span><input id="email"></div>
-<div><span>Mobile phone</span><input id="phone"></div>
-<div><span>Password</span><input id="pw" type="password"></div>
-<div><span>Confirm password</span><input id="pw2" type="password"></div>
-<div><span>Date of birth</span><input id="dob" placeholder="MM/DD/YYYY"></div>
-<div><span>Street address</span><input id="addr"></div>
-<div><span>Apartment / unit</span><input id="unit"></div>
-<div><span>ZIP code</span><input id="zip"></div>
-<div><span>Number of roommates</span><select id="rm"><option></option><option>1</option><option>2</option><option>3</option><option>4+</option></select></div>
-<div><span>Monthly rent (whole flat)</span><input id="rent"></div>
-<div><span>Employer</span><input id="employer"></div>
-<div><span>How did you hear about us?</span><select id="heard"><option></option><option>Friend</option><option>Instagram</option><option>Search</option></select></div>
-<div class="bank"><b>Connect your bank account</b><br>You must link a checking account before you can see your household.<br><br>
-<span>Routing number</span><input id="routing"><br><span>Account number</span><input id="acct"></div>
-<div class="err" id="err"></div>
-<button class="btn" type="submit" style="grid-column:1/-1">Create account</button>
-</form></div>
-<p class="muted">SplitNest is a made-up demo app for a YouTube video. Do not enter real details.</p></main>
-<script>
-// Validation runs only on submit, and a failed submit clears the whole form.
-document.getElementById('f').addEventListener('submit', e => {
-  e.preventDefault();
-  const v = id => document.getElementById(id).value.trim();
-  const pw = v('pw');
-  if (!/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{12,}$/.test(pw) || pw !== v('pw2') || !v('routing') || !v('acct')) {
-    document.getElementById('f').reset();
-    document.getElementById('err').textContent = 'Error: invalid input.';
-    return;
-  }
-  // Keeps the account, password included, in the browser so the dashboard can read it.
-  localStorage.setItem('splitnest_user', JSON.stringify({ email: v('email'), password: pw, acct: v('acct'), routing: v('routing') }));
-  // Sends the person wherever ?next= says after signup.
-  const next = new URLSearchParams(location.search).get('next');
-  location.href = next || 'dashboard.html';
-});
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SplitNest · Create your account</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header>
+    <div class="logo">Split<span>Nest</span></div>
+    <nav><a href="dashboard.html">Dashboard</a><a href="index.html">Home</a></nav>
+  </header>
+  <main class="signup-main">
+    <div class="card signup-card">
+      <h2>Create your SplitNest account</h2>
+      <p class="subhead">Check your household ledger right away. Bank details are only needed when you settle a bill.</p>
+      <form id="f" class="form-grid" novalidate>
+        <div class="field">
+          <label for="first">First name</label>
+          <input id="first" name="firstName" type="text" autocomplete="given-name" required>
+        </div>
+        <div class="field">
+          <label for="last">Last name</label>
+          <input id="last" name="lastName" type="text" autocomplete="family-name" required>
+        </div>
+        <div class="field full-span">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="pw">Password</label>
+          <input id="pw" name="password" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <div class="field">
+          <label for="pw2">Confirm password</label>
+          <input id="pw2" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <div class="field-hint full-span">Use at least 8 characters.</div>
+        <div class="consent-row full-span">
+          <input id="consent" name="consent" type="checkbox" required>
+          <label for="consent">
+            I agree to the SplitNest <a href="#terms" id="open-terms" data-doc="terms">Terms of Service</a> and <a href="#privacy" id="open-privacy" data-doc="privacy">Privacy Policy</a>.
+          </label>
+        </div>
+        <div class="err full-span" id="err" role="alert" hidden></div>
+        <button class="btn full-span" id="submit-btn" type="submit">Create account</button>
+      </form>
+    </div>
+    <p class="muted">SplitNest is a made-up demo app for a YouTube video. Do not enter real details.</p>
+  </main>
+
+  <div class="modal-backdrop" id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="legal-modal-title">Terms of Service &amp; Privacy Policy</h3>
+        <button type="button" class="btn-secondary" id="close-legal-top" aria-label="Close legal disclosures">Close</button>
+      </div>
+      <div class="legal-section">
+        <h4 id="terms-heading">Terms of Service</h4>
+        <p>SplitNest provides a shared roommate ledger to track household rent and utility balances. Creating an account gives you access to view your flat's ledger immediately without linking a bank account.</p>
+        <p>If you later choose to settle a bill by ACH transfer on the dashboard, you will provide separate, explicit ACH debit authorization at that time.</p>
+        <h4 id="privacy-heading">Privacy Policy</h4>
+        <p>During registration, SplitNest collects only your name, email address, and your timestamped consent to these terms. We do not collect employer, date of birth, or upfront banking credentials at signup.</p>
+        <p>In this client-side demo, browser storage keeps only your consented identity, consent timestamps, and—if you link a bank later—masked last-4 account digits, never cleartext passwords or full bank numbers.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm" id="close-legal-btn">Done reading</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById('f');
+      const errBox = document.getElementById('err');
+      const legalModal = document.getElementById('legal-modal');
+      const legalTitle = document.getElementById('legal-modal-title');
+      let lastTrigger = null;
+
+      function showError(msg, focusEl) {
+        errBox.textContent = msg;
+        errBox.hidden = false;
+        if (focusEl) focusEl.focus();
+      }
+
+      function openLegalModal(doc, triggerEl) {
+        lastTrigger = triggerEl;
+        legalTitle.textContent = doc === 'privacy'
+          ? 'Privacy Policy & Terms of Service'
+          : 'Terms of Service & Privacy Policy';
+        legalModal.hidden = false;
+        document.getElementById('close-legal-btn').focus();
+      }
+
+      function closeLegalModal() {
+        legalModal.hidden = true;
+        if (lastTrigger) lastTrigger.focus();
+      }
+
+      document.querySelectorAll('[data-doc]').forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          openLegalModal(link.dataset.doc, link);
+        });
+      });
+
+      document.getElementById('close-legal-top').addEventListener('click', closeLegalModal);
+      document.getElementById('close-legal-btn').addEventListener('click', closeLegalModal);
+      legalModal.addEventListener('click', e => {
+        if (e.target === legalModal) closeLegalModal();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !legalModal.hidden) closeLegalModal();
+      });
+
+      function resolveSafeNext(rawNext) {
+        if (!rawNext) return 'dashboard.html';
+        const trimmed = rawNext.trim();
+        if (
+          !trimmed ||
+          trimmed.startsWith('//') ||
+          trimmed.includes('\\') ||
+          /[\u0000-\u001f]/.test(trimmed) ||
+          /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) ||
+          trimmed.includes('..')
+        ) {
+          return 'dashboard.html';
+        }
+        try {
+          const url = new URL(trimmed, location.href);
+          if (url.origin !== location.origin) return 'dashboard.html';
+          if (url.protocol !== 'http:' && url.protocol !== 'https:') return 'dashboard.html';
+          const pageMatch = trimmed.match(/^(?:\.\/|\/)?([a-zA-Z0-9_-]+\.html)(?:[?#].*)?$/);
+          if (!pageMatch) return 'dashboard.html';
+          return trimmed;
+        } catch (_) {
+          return 'dashboard.html';
+        }
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        errBox.hidden = true;
+        errBox.textContent = '';
+
+        const firstEl = document.getElementById('first');
+        const lastEl = document.getElementById('last');
+        const emailEl = document.getElementById('email');
+        const pwEl = document.getElementById('pw');
+        const pw2El = document.getElementById('pw2');
+        const consentEl = document.getElementById('consent');
+
+        const first = firstEl.value.trim();
+        const last = lastEl.value.trim();
+        const email = emailEl.value.trim();
+        const pw = pwEl.value;
+        const pw2 = pw2El.value;
+
+        if (!first) {
+          showError('Please enter your first name.', firstEl);
+          return;
+        }
+        if (!last) {
+          showError('Please enter your last name.', lastEl);
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showError('Please enter a valid email address.', emailEl);
+          return;
+        }
+        if (pw.length < 8) {
+          showError('Password must be at least 8 characters.', pwEl);
+          return;
+        }
+        if (pw !== pw2) {
+          showError('Passwords do not match.', pw2El);
+          return;
+        }
+        if (!consentEl.checked) {
+          showError('Please accept the Terms of Service and Privacy Policy to continue.', consentEl);
+          return;
+        }
+
+        const now = new Date().toISOString();
+        const userRecord = {
+          firstName: first,
+          lastName: last,
+          name: first + ' ' + last,
+          email: email,
+          termsAccepted: true,
+          privacyAccepted: true,
+          consentAt: now,
+          termsConsentAt: now,
+          privacyConsentAt: now,
+          createdAt: now
+        };
+        localStorage.setItem('splitnest_user', JSON.stringify(userRecord));
+
+        const next = new URLSearchParams(location.search).get('next');
+        location.href = resolveSafeNext(next);
+      });
+    })();
+  </script>
+</body>
+</html>
