@@ -1,20 +1,344 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SplitNest · Dashboard</title><link rel="stylesheet" href="css/app.css">
-<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script></head>
-<body><header><div class="logo">Split<span>Nest</span></div><nav><a href="activity.html">Activity</a><a href="index.html">Home</a></nav></header>
-<main><div id="note" class="card" style="display:none"></div>
-<div class="card"><h2 id="title" style="margin-top:0">Your household</h2><table id="bills"></table></div>
-<p class="muted">SplitNest is a made-up demo app for a YouTube video. All names and numbers are invented.</p></main>
-<script>
-const q = new URLSearchParams(location.search);
-// A message from a roommate, shown as HTML straight from the link.
-if (q.get('note')) { const n = document.getElementById('note'); n.style.display = 'block'; n.innerHTML = 'Message from your roommate: ' + q.get('note'); }
-// Every household's payments are downloaded; the page just picks one by the ?flat= number in the link.
-fetch('data/households.json').then(r => r.json()).then(all => {
-  const isAdmin = localStorage.getItem('role') === 'admin';
-  const flat = isAdmin ? null : (q.get('flat') || '4B');
-  const rows = all.filter(h => !flat || h.flat === flat);
-  document.getElementById('title').textContent = flat ? 'Flat ' + flat : 'All households';
-  document.getElementById('bills').innerHTML = '<tr><th>Flat</th><th>Roommate</th><th>Email</th><th>Paid</th><th>Card</th></tr>' +
-    rows.flatMap(h => h.payments.map(p => `<tr><td>${h.flat}</td><td>${p.name}</td><td>${p.email}</td><td>$${p.amount}</td><td>${p.card}</td></tr>`)).join('');
-});
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SplitNest · Dashboard</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo">Split<span>Nest</span></div>
+    <nav><a href="activity.html">Activity</a><a href="signup.html">Sign up</a><a href="index.html">Home</a></nav>
+  </header>
+  <main>
+    <div id="note" class="card" style="display:none"></div>
+
+    <div class="card">
+      <div class="ledger-header">
+        <div>
+          <h2 id="title" style="margin:0 0 4px">Your household</h2>
+          <div id="household-sub" class="muted" style="font-size:13px">Shared roommate ledger · View balances anytime without linking a bank</div>
+        </div>
+        <div class="ledger-actions">
+          <span id="bank-status" class="status-pill">No bank linked</span>
+          <button type="button" class="btn btn-sm" id="settle-bill-btn">Settle bill</button>
+          <button type="button" class="btn-secondary" id="flat-setup-btn" hidden>Flat details</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="bills"></table>
+      </div>
+    </div>
+
+    <div class="card" id="flat-prompt">
+      <div class="flat-bar">
+        <div>
+          <b style="font-size:16px">Optional: Complete your flat profile</b>
+          <div class="muted" style="font-size:13px;margin-top:2px">Save your apartment and rent details for future splits, or skip for now—your ledger stays open either way.</div>
+        </div>
+        <button type="button" class="btn-secondary" id="dismiss-flat-btn">Skip for now</button>
+      </div>
+      <form id="flat-form" class="flat-grid" novalidate>
+        <div class="field">
+          <label for="flat-unit">Apartment / unit</label>
+          <input id="flat-unit" name="unit" type="text" placeholder="e.g. 4B">
+        </div>
+        <div class="field">
+          <label for="flat-addr">Street address</label>
+          <input id="flat-addr" name="address" type="text" placeholder="e.g. 742 Valencia St">
+        </div>
+        <div class="field">
+          <label for="flat-rent">Monthly rent ($)</label>
+          <input id="flat-rent" name="monthlyRent" type="text" inputmode="decimal" placeholder="e.g. 4200">
+        </div>
+        <div class="field">
+          <label for="flat-rm">Roommates</label>
+          <select id="flat-rm" name="roommates">
+            <option value="">Select</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4+">4+</option>
+          </select>
+        </div>
+        <div class="full-span" style="display:flex;justify-content:flex-end;gap:10px;margin-top:2px">
+          <button type="submit" class="btn btn-sm" id="save-flat-btn">Save flat details</button>
+        </div>
+      </form>
+    </div>
+
+    <p class="muted">SplitNest is a made-up demo app for a YouTube video. All names and numbers are invented.</p>
+  </main>
+
+  <div class="modal-backdrop" id="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="payment-modal-title">Link checking account to settle bill</h3>
+        <button type="button" class="btn-secondary" id="close-payment-top" aria-label="Close payment setup">Cancel</button>
+      </div>
+      <p class="subhead">Enter your checking details to pay your household share via ACH. Only masked last-4 digits and your authorization timestamp are stored.</p>
+      <form id="payment-form" class="form-grid" novalidate>
+        <div class="field full-span">
+          <label for="routing">Routing number (9 digits)</label>
+          <input id="routing" name="routing" type="text" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="e.g. 121000358" required>
+        </div>
+        <div class="field full-span">
+          <label for="acct">Checking account number</label>
+          <input id="acct" name="acct" type="text" inputmode="numeric" maxlength="17" autocomplete="off" placeholder="Enter account number" required>
+        </div>
+        <div class="consent-row full-span">
+          <input id="ach-consent" name="achConsent" type="checkbox" required>
+          <label for="ach-consent">
+            I authorize SplitNest to debit this checking account via ACH to settle my household bills.
+          </label>
+        </div>
+        <div class="err full-span" id="payment-err" role="alert" hidden></div>
+        <div class="modal-actions full-span">
+          <button type="button" class="btn-secondary" id="cancel-payment-btn">Not now</button>
+          <button type="submit" class="btn btn-sm" id="confirm-payment-btn">Link bank &amp; settle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const q = new URLSearchParams(location.search);
+      if (q.get('note')) {
+        const n = document.getElementById('note');
+        n.style.display = 'block';
+        n.textContent = 'Message from your roommate: ' + q.get('note');
+      }
+
+      function readSafeUser() {
+        try {
+          const raw = JSON.parse(localStorage.getItem('splitnest_user') || '{}');
+          if (!raw || typeof raw !== 'object') return {};
+          const copy = Object.assign({}, raw);
+          delete copy.password;
+          delete copy.acct;
+          delete copy.routing;
+          return copy;
+        } catch (_) {
+          return {};
+        }
+      }
+
+      function writeSafeUser(patch) {
+        const next = Object.assign(readSafeUser(), patch);
+        delete next.password;
+        delete next.acct;
+        delete next.routing;
+        localStorage.setItem('splitnest_user', JSON.stringify(next));
+        return next;
+      }
+
+      let allHouseholds = [];
+
+      function renderHouseholdLedger() {
+        const user = readSafeUser();
+        const isAdmin = localStorage.getItem('role') === 'admin';
+        const queryFlat = q.get('flat');
+        const savedUnit = user.flatProfile && user.flatProfile.unit ? user.flatProfile.unit.trim() : '';
+        const matchedSaved = savedUnit && allHouseholds.some(h => h.flat.toLowerCase() === savedUnit.toLowerCase())
+          ? allHouseholds.find(h => h.flat.toLowerCase() === savedUnit.toLowerCase()).flat
+          : null;
+        const flat = isAdmin ? null : (queryFlat || matchedSaved || '4B');
+        const rows = allHouseholds.filter(h => !flat || h.flat === flat);
+
+        document.getElementById('title').textContent = flat ? 'Flat ' + flat : 'All households';
+        document.getElementById('bills').innerHTML =
+          '<tr><th>Flat</th><th>Roommate</th><th>Email</th><th>Paid</th><th>Card</th></tr>' +
+          rows.flatMap(h => h.payments.map(p =>
+            `<tr><td>${h.flat}</td><td>${p.name}</td><td>${p.email}</td><td>$${p.amount.toFixed(2)}</td><td>${p.card}</td></tr>`
+          )).join('');
+      }
+
+      function renderUserStatus() {
+        const user = readSafeUser();
+        const statusEl = document.getElementById('bank-status');
+        const settleBtn = document.getElementById('settle-bill-btn');
+        const subEl = document.getElementById('household-sub');
+        const flatPrompt = document.getElementById('flat-prompt');
+        const flatSetupBtn = document.getElementById('flat-setup-btn');
+
+        const masked = user.maskedAccount || (user.paymentMethod && user.paymentMethod.maskedAccount);
+        if (masked) {
+          statusEl.textContent = 'Checking ' + masked + ' · ACH authorized';
+          statusEl.classList.add('linked');
+          settleBtn.textContent = 'Update bank';
+        } else {
+          statusEl.textContent = 'No bank linked';
+          statusEl.classList.remove('linked');
+          settleBtn.textContent = 'Settle bill';
+        }
+
+        const parts = [];
+        if (user.firstName) parts.push('Signed in as ' + user.firstName);
+        if (user.flatProfile && (user.flatProfile.unit || user.flatProfile.address || user.flatProfile.monthlyRent)) {
+          const fp = user.flatProfile;
+          const summary = [
+            fp.unit ? 'Unit ' + fp.unit : '',
+            fp.address || '',
+            fp.monthlyRent ? '$' + fp.monthlyRent + '/mo' : '',
+            fp.roommates ? fp.roommates + ' roommates' : ''
+          ].filter(Boolean).join(' · ');
+          if (summary) parts.push(summary);
+        }
+        if (!parts.length) {
+          parts.push('Shared roommate ledger · View balances anytime without linking a bank');
+        }
+        subEl.textContent = parts.join(' — ');
+
+        const hasSavedFlat = Boolean(user.flatProfile && user.flatProfile.savedAt);
+        const dismissedFlat = Boolean(user.flatPromptDismissed);
+        if (hasSavedFlat || dismissedFlat) {
+          flatPrompt.hidden = true;
+          flatSetupBtn.hidden = false;
+          flatSetupBtn.textContent = hasSavedFlat ? 'Edit flat details' : 'Add flat details';
+        } else {
+          flatPrompt.hidden = false;
+          flatSetupBtn.hidden = true;
+        }
+      }
+
+      fetch('data/households.json')
+        .then(r => r.json())
+        .then(all => {
+          allHouseholds = all;
+          renderHouseholdLedger();
+          renderUserStatus();
+        });
+      renderUserStatus();
+
+      // Optional post-signup flat profile handlers
+      const flatPrompt = document.getElementById('flat-prompt');
+      const flatSetupBtn = document.getElementById('flat-setup-btn');
+      document.getElementById('dismiss-flat-btn').addEventListener('click', () => {
+        writeSafeUser({ flatPromptDismissed: true });
+        renderUserStatus();
+      });
+
+      flatSetupBtn.addEventListener('click', () => {
+        const user = readSafeUser();
+        const fp = user.flatProfile || {};
+        document.getElementById('flat-unit').value = fp.unit || '';
+        document.getElementById('flat-addr').value = fp.address || '';
+        document.getElementById('flat-rent').value = fp.monthlyRent || '';
+        document.getElementById('flat-rm').value = fp.roommates || '';
+        flatPrompt.hidden = false;
+        flatSetupBtn.hidden = true;
+        document.getElementById('flat-unit').focus();
+      });
+
+      document.getElementById('flat-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const unit = document.getElementById('flat-unit').value.trim();
+        const address = document.getElementById('flat-addr').value.trim();
+        const monthlyRent = document.getElementById('flat-rent').value.trim();
+        const roommates = document.getElementById('flat-rm').value;
+        writeSafeUser({
+          flatPromptDismissed: false,
+          flatProfile: {
+            unit: unit,
+            address: address,
+            monthlyRent: monthlyRent,
+            roommates: roommates,
+            savedAt: new Date().toISOString()
+          }
+        });
+        if (allHouseholds.length) renderHouseholdLedger();
+        renderUserStatus();
+      });
+
+      // Deferred payment / ACH modal handlers
+      const paymentModal = document.getElementById('payment-modal');
+      const paymentForm = document.getElementById('payment-form');
+      const paymentErr = document.getElementById('payment-err');
+      const settleBtn = document.getElementById('settle-bill-btn');
+      const routingInput = document.getElementById('routing');
+      const acctInput = document.getElementById('acct');
+      const achConsentInput = document.getElementById('ach-consent');
+
+      function openPaymentModal() {
+        paymentErr.hidden = true;
+        paymentErr.textContent = '';
+        achConsentInput.checked = false;
+        paymentModal.hidden = false;
+        routingInput.focus();
+      }
+
+      function closePaymentModal() {
+        paymentModal.hidden = true;
+        paymentErr.hidden = true;
+        paymentErr.textContent = '';
+        settleBtn.focus();
+      }
+
+      settleBtn.addEventListener('click', openPaymentModal);
+      document.getElementById('close-payment-top').addEventListener('click', closePaymentModal);
+      document.getElementById('cancel-payment-btn').addEventListener('click', closePaymentModal);
+      paymentModal.addEventListener('click', e => {
+        if (e.target === paymentModal) closePaymentModal();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !paymentModal.hidden) closePaymentModal();
+      });
+
+      paymentForm.addEventListener('submit', e => {
+        e.preventDefault();
+        paymentErr.hidden = true;
+        paymentErr.textContent = '';
+
+        const routing = routingInput.value.trim();
+        const acct = acctInput.value.trim();
+
+        if (!/^\d{9}$/.test(routing)) {
+          paymentErr.textContent = 'Please enter a valid 9-digit routing number.';
+          paymentErr.hidden = false;
+          routingInput.focus();
+          return;
+        }
+        if (!/^\d{4,17}$/.test(acct)) {
+          paymentErr.textContent = 'Please enter a valid checking account number (4–17 digits).';
+          paymentErr.hidden = false;
+          acctInput.focus();
+          return;
+        }
+        if (!achConsentInput.checked) {
+          paymentErr.textContent = 'Please authorize ACH transfers before linking your checking account.';
+          paymentErr.hidden = false;
+          achConsentInput.focus();
+          return;
+        }
+
+        const last4 = acct.slice(-4);
+        const maskedAccount = '\u2022\u2022\u2022\u2022 ' + last4;
+        const now = new Date().toISOString();
+
+        writeSafeUser({
+          maskedAccount: maskedAccount,
+          acctLast4: last4,
+          achConsent: true,
+          achConsentAt: now,
+          paymentMethod: {
+            type: 'ach_checking',
+            maskedAccount: maskedAccount,
+            last4: last4,
+            achConsent: true,
+            achConsentAt: now
+          }
+        });
+
+        routingInput.value = '';
+        acctInput.value = '';
+        achConsentInput.checked = false;
+        closePaymentModal();
+        renderUserStatus();
+      });
+    })();
+  </script>
+</body>
+</html>
