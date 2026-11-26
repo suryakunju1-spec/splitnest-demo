@@ -6,9 +6,31 @@
 <div class="card"><h3 style="margin-top:0">Recent activity</h3><table id="act"></table></div>
 <p class="muted">SplitNest is a made-up demo app for a YouTube video.</p></main>
 <script>
-// Photos of the flat, full size, all at once.
+// Responsive flat photos with intrinsic dimensions and lazy async decoding.
 const ph = document.getElementById('photos');
-for (let i = 1; i <= 6; i++) { const im = new Image(); im.src = 'img/flat-photo-' + i + '.jpg'; im.style.width = '100%'; im.style.borderRadius = '12px'; ph.appendChild(im); }
+const photoAlts = [
+  'Victorian apartment exterior',
+  'Living room with bay windows and bookcase',
+  'Kitchen with white cabinets and dining table',
+  'Bedroom with wooden bed and desk',
+  'Living room seating area facing bay windows',
+  'Shared kitchen and dining nook'
+];
+for (let i = 1; i <= 6; i++) {
+  const im = document.createElement('img');
+  im.width = 616;
+  im.height = 414;
+  im.alt = photoAlts[i - 1];
+  im.decoding = 'async';
+  im.loading = 'lazy';
+  im.style.width = '100%';
+  im.style.height = 'auto';
+  im.style.borderRadius = '12px';
+  im.sizes = '(max-width: 1040px) calc((100vw - 116px) / 3), 308px';
+  im.srcset = 'img/flat-photo-' + i + '-308w.jpg 308w, img/flat-photo-' + i + '.jpg 616w';
+  im.src = 'img/flat-photo-' + i + '.jpg';
+  ph.appendChild(im);
+}
 // The whole activity history is downloaded and drawn, one row at a time.
 fetch('data/activity-log.json?nocache=' + Date.now()).then(r => r.json()).then(rows => {
   const t = document.getElementById('act');
