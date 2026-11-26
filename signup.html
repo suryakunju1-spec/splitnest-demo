@@ -7,7 +7,7 @@ input,select{padding:7px;border:1px solid #ccc;border-radius:4px;font-size:13px}
 .err{color:#d33;font-size:12px;min-height:16px;grid-column:1/-1}
 .bank{grid-column:1/-1;background:#fff6ee;border:1px solid #f1c7a6;padding:14px;border-radius:8px;font-size:13px}
 </style></head>
-<body><header><div class="logo">Split<span>Nest</span></div><nav><a href="index.html">Home</a></nav></header>
+<body><header><div class="logo">Split<span>Nest</span></div><nav><a id="login-link" href="login.html">Sign in</a><a href="index.html">Home</a></nav></header>
 <main><div class="card"><h2 style="margin-top:0">Create your SplitNest account</h2>
 <p class="muted">All fields are required.</p>
 <form id="f">
@@ -33,19 +33,51 @@ input,select{padding:7px;border:1px solid #ccc;border-radius:4px;font-size:13px}
 <p class="muted">SplitNest is a made-up demo app for a YouTube video. Do not enter real details.</p></main>
 <script>
 // Validation runs only on submit, and a failed submit clears the whole form.
-document.getElementById('f').addEventListener('submit', e => {
+const nextParam = new URLSearchParams(location.search).get('next');
+function safeNextUrl(raw) {
+  if (!raw || raw.startsWith('//') || raw.startsWith('/\\')) return 'dashboard.html';
+  try {
+    const u = new URL(raw, location.origin);
+    if (u.origin === location.origin && /^\/[a-zA-Z0-9._/-]*$/.test(u.pathname)) {
+      return u.pathname + u.search + u.hash;
+    }
+  } catch (_) {}
+  return 'dashboard.html';
+}
+if (nextParam) {
+  document.getElementById('login-link').href = 'login.html?next=' + encodeURIComponent(safeNextUrl(nextParam));
+}
+document.getElementById('f').addEventListener('submit', async e => {
   e.preventDefault();
   const v = id => document.getElementById(id).value.trim();
   const pw = v('pw');
-  if (!/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{12,}$/.test(pw) || pw !== v('pw2') || !v('routing') || !v('acct')) {
+  if (!v('email') || !v('unit') || !/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{12,}$/.test(pw) || pw !== v('pw2') || !v('routing') || !v('acct')) {
     document.getElementById('f').reset();
     document.getElementById('err').textContent = 'Error: invalid input.';
     return;
   }
-  // Keeps the account, password included, in the browser so the dashboard can read it.
-  localStorage.setItem('splitnest_user', JSON.stringify({ email: v('email'), password: pw, acct: v('acct'), routing: v('routing') }));
-  // Sends the person wherever ?next= says after signup.
-  const next = new URLSearchParams(location.search).get('next');
-  location.href = next || 'dashboard.html';
+  try {
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        firstName: v('first'),
+        lastName: v('last'),
+        email: v('email'),
+        password: pw,
+        unit: v('unit'),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      document.getElementById('err').textContent = data.error || 'Error: unable to create account.';
+      return;
+    }
+    localStorage.removeItem('splitnest_user');
+    location.href = safeNextUrl(nextParam);
+  } catch (_) {
+    document.getElementById('err').textContent = 'Error: unable to create account.';
+  }
 });
 </script></body></html>

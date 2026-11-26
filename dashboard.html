@@ -8,13 +8,44 @@
 const q = new URLSearchParams(location.search);
 // A message from a roommate, shown as HTML straight from the link.
 if (q.get('note')) { const n = document.getElementById('note'); n.style.display = 'block'; n.innerHTML = 'Message from your roommate: ' + q.get('note'); }
-// Every household's payments are downloaded; the page just picks one by the ?flat= number in the link.
-fetch('data/households.json').then(r => r.json()).then(all => {
-  const isAdmin = localStorage.getItem('role') === 'admin';
-  const flat = isAdmin ? null : (q.get('flat') || '4B');
-  const rows = all.filter(h => !flat || h.flat === flat);
-  document.getElementById('title').textContent = flat ? 'Flat ' + flat : 'All households';
-  document.getElementById('bills').innerHTML = '<tr><th>Flat</th><th>Roommate</th><th>Email</th><th>Paid</th><th>Card</th></tr>' +
-    rows.flatMap(h => h.payments.map(p => `<tr><td>${h.flat}</td><td>${p.name}</td><td>${p.email}</td><td>$${p.amount}</td><td>${p.card}</td></tr>`)).join('');
+const apiUrl = q.has('flat') ? '/api/household?flat=' + encodeURIComponent(q.get('flat')) : '/api/household';
+fetch(apiUrl, { credentials: 'same-origin' }).then(async r => {
+  if (r.status === 401) {
+    location.replace('login.html?next=' + encodeURIComponent(location.pathname + location.search));
+    return null;
+  }
+  if (r.status === 403) {
+    document.getElementById('title').textContent = 'Access denied';
+    document.getElementById('bills').replaceChildren();
+    return null;
+  }
+  if (!r.ok) {
+    document.getElementById('bills').replaceChildren();
+    return null;
+  }
+  return r.json();
+}).then(household => {
+  if (!household) return;
+  document.getElementById('title').textContent = 'Flat ' + household.flat;
+  const table = document.getElementById('bills');
+  table.replaceChildren();
+  const headerRow = document.createElement('tr');
+  for (const label of ['Flat', 'Roommate', 'Email', 'Paid', 'Card']) {
+    const th = document.createElement('th');
+    th.textContent = label;
+    headerRow.appendChild(th);
+  }
+  table.appendChild(headerRow);
+  for (const p of (household.payments || [])) {
+    const tr = document.createElement('tr');
+    for (const value of [household.flat, p.name, p.email, '$' + p.amount, p.card]) {
+      const td = document.createElement('td');
+      td.textContent = value;
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+}).catch(() => {
+  document.getElementById('bills').replaceChildren();
 });
 </script></body></html>

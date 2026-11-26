@@ -1,0 +1,11 @@
+{
+  "name": "splitnest-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SplitNest demo app with server-enforced household authorization",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "python3 -m unittest discover -s tests -v"
+  }
+}
